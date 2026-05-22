@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nosso Álbum Infinito</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --pink-main: #ff5d73;
+            --pink-light: #fff0f3;
+            --text-dark: #4a4a4a;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--pink-light);
+            color: var(--text-dark);
+            text-align: center;
+        }
+
+        header {
+            background-color: var(--pink-main);
+            color: white;
+            padding: 60px 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            font-family: 'Pacifico', cursive;
+            font-size: 3.5rem;
+            margin: 0;
+        }
+        .contador {
+            font-size: 1.2rem;
+            margin: 20px 0;
+            font-weight: 300;
+        }
+        .mensagem {
+            max-width: 800px;
+            margin: 0 auto;
+            font-style: italic;
+            line-height: 1.6;
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .memorias-titulo {
+            padding: 40px 0 20px;
+            font-family: 'Pacifico', cursive;
+            font-size: 2rem;
+            color: #8b2635;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            padding: 20px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease;
+            text-align: left;
+            position: relative;
+        }
+        .card:hover { transform: translateY(-5px); }
+        .card img {
+            width: 100%;
+            height: 350px;
+            object-fit: cover;
+            display: block;
+        }
+        .card-no-img {
+            height: 80px;
+            background: linear-gradient(135deg, var(--pink-light), #ffe0e6);
+        }
+        .card-content { padding: 20px; }
+        .card-date {
+            color: #ff5d73;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .card-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #8b2635;
+            margin-bottom: 10px;
+        }
+        .card-desc {
+            font-size: 1rem;
+            color: #666;
+            white-space: pre-line;
+        }
+        .audio-player { margin-top: 15px; }
+        .audio-player audio { width: 100%; border-radius: 8px; }
+
+        .btn-delete {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(139,38,53,0.8);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            line-height: 1;
+        }
+
+        .loading {
+            grid-column: 1 / -1;
+            padding: 60px 20px;
+            color: #aaa;
+            font-style: italic;
+            font-size: 1.1rem;
+        }
+
+        /* FAB */
+        .fab {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 56px;
+            height: 56px;
+            background: var(--pink-main);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 1.6rem;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255,93,115,0.5);
+            z-index: 100;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(255,93,115,0.6);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.55);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-box {
+            background: white;
+            border-radius: 20px;
+            padding: 35px;
+            width: 100%;
+            max-width: 480px;
+            max-height: 90vh;
+            overflow-y: auto;
+            text-align: left;
+            position: relative;
+        }
+        .modal-title {
+            font-family: 'Pacifico', cursive;
+            color: var(--pink-main);
+            font-size: 1.6rem;
+            margin: 0 0 25px;
+            text-align: center;
+        }
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #bbb;
+            line-height: 1;
+        }
+        .modal-close:hover { color: #888; }
+
+        .form-group { margin-bottom: 18px; }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #555;
+            margin-bottom: 6px;
+        }
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #eee;
+            border-radius: 10px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+            outline: none;
+            color: var(--text-dark);
+        }
+        .form-group input:focus,
+        .form-group textarea:focus { border-color: var(--pink-main); }
+        .form-group textarea { resize: vertical; min-height: 80px; }
+
+        .upload-area {
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+            position: relative;
+        }
+        .upload-area:hover { border-color: var(--pink-main); background: var(--pink-light); }
+        .upload-area input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+        .upload-icon { font-size: 2rem; }
+        .upload-text { font-size: 0.85rem; color: #aaa; margin-top: 4px; }
+        .file-name { color: var(--pink-main); font-weight: 600; font-size: 0.85rem; margin-top: 5px; word-break: break-all; }
+        .img-preview {
+            width: 100%;
+            max-height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #eee;
+            border-radius: 3px;
+            margin-top: 8px;
+            overflow: hidden;
+            display: none;
+        }
+        .progress-fill {
+            height: 100%;
+            background: var(--pink-main);
+            border-radius: 3px;
+            transition: width 0.3s;
+            width: 0%;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            background: var(--pink-main);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            margin-top: 8px;
+        }
+        .btn-primary:hover { background: #e5455b; }
+        .btn-primary:active { transform: scale(0.98); }
+        .btn-primary:disabled { background: #ccc; cursor: not-allowed; }
+
+        .error-msg {
+            color: #e55;
+            font-size: 0.85rem;
+            margin-top: 8px;
+            text-align: center;
+            min-height: 20px;
+        }
+
+        footer {
+            padding: 40px;
+            opacity: 0.6;
+            font-size: 0.8rem;
+        }
+
+        @media (max-width: 600px) {
+            h1 { font-size: 2.2rem; }
+            .memorias-titulo { font-size: 1.5rem; }
+            .fab { bottom: 20px; right: 20px; }
+            .modal-box { padding: 25px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Nosso Amor ❤️</h1>
+        <div class="contador" id="timer">Juntos há ...</div>
+        <p class="mensagem">
+            Nosso amor é como um infinito que cresce a cada dia; cada sorriso, cada abraço e cada lembrança que compartilhamos é uma prova de que juntos podemos transformar momentos simples em eternidade. Contigo, cada segundo vale ouro, e cada memória se torna poesia viva no livro da nossa vida. ❤️
+        </p>
+    </header>
+
+    <div class="memorias-titulo">✨ Nossas Memórias ✨</div>
+
+    <main class="container" id="cards-container">
+        <div class="loading">A carregar memórias... ❤️</div>
+    </main>
+
+    <footer>Feito com ❤️ por nós dois.</footer>
+
+    <!-- Botão flutuante para nova memória -->
+    <button class="fab" onclick="openModal('post-modal')" title="Nova Memória">+</button>
+
+    <!-- Modal: Nova memória -->
+    <div class="modal-overlay" id="post-modal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeModal('post-modal')">✕</button>
+            <h2 class="modal-title">Nova Memória ❤️</h2>
+
+            <div class="form-group">
+                <label>Título *</label>
+                <input type="text" id="post-titulo" placeholder="Nome desse momento...">
+            </div>
+
+            <div class="form-group">
+                <label>Data</label>
+                <input type="date" id="post-data">
+            </div>
+
+            <div class="form-group">
+                <label>Descrição</label>
+                <textarea id="post-desc" placeholder="Conta essa história..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Foto (opcional)</label>
+                <div class="upload-area">
+                    <input type="file" id="post-imagem" accept="image/*" onchange="previewImage(this)">
+                    <div class="upload-icon">📷</div>
+                    <div class="upload-text">Clica para escolher uma foto</div>
+                    <div class="file-name" id="img-file-name"></div>
+                    <img class="img-preview" id="img-preview" alt="preview">
+                </div>
+                <div class="progress-bar" id="img-progress">
+                    <div class="progress-fill" id="img-progress-fill"></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Áudio (opcional)</label>
+                <div class="upload-area">
+                    <input type="file" id="post-audio" accept="audio/*" onchange="showFileName(this, 'audio-file-name')">
+                    <div class="upload-icon">🎵</div>
+                    <div class="upload-text">Clica para escolher um áudio</div>
+                    <div class="file-name" id="audio-file-name"></div>
+                </div>
+                <div class="progress-bar" id="audio-progress">
+                    <div class="progress-fill" id="audio-progress-fill"></div>
+                </div>
+            </div>
+
+            <div class="error-msg" id="post-error"></div>
+            <button class="btn-primary" id="post-submit-btn" onclick="createPost()">Publicar Memória ❤️</button>
+        </div>
+    </div>
+
+    <!-- Firebase SDK (apenas Firestore) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+    <script>
+        // ============================================================
+        // CONFIGURAÇÃO DO FIREBASE
+        // Firebase Console > Project Settings > copia os teus dados
+        // ============================================================
+        const firebaseConfig = {
+            apiKey:            "AIzaSyBJDJ56WGbKNUzNxP207SAGTgzGgrmmRzg",
+            authDomain:        "nosso-amor-b1b07.firebaseapp.com",
+            projectId:         "nosso-amor-b1b07",
+            storageBucket:     "nosso-amor-b1b07.firebasestorage.app",
+            messagingSenderId: "106660766065",
+            appId:             "1:106660766065:web:f9bf6afc8edb8822f196d0"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // ============================================================
+        // CLOUDINARY (gratuito — para imagens e áudio)
+        // 1. Cria conta em cloudinary.com
+        // 2. Settings > Upload > Upload Presets > Add preset > Unsigned
+        // 3. Cola o teu Cloud Name e nome do preset abaixo
+        // ============================================================
+        const CLOUDINARY_CLOUD  = "df2nyy8lz";
+        const CLOUDINARY_PRESET = "moraldemomentos";
+
+        // ============================================================
+        // CONTADOR
+        // ============================================================
+        const dataInicio = new Date(2025, 11, 18, 0, 0, 0);
+
+        function atualizarContador() {
+            const diff = new Date() - dataInicio;
+            const dias     = Math.floor(diff / 86400000);
+            const horas    = Math.floor((diff / 3600000) % 24);
+            const minutos  = Math.floor((diff / 60000) % 60);
+            const segundos = Math.floor((diff / 1000) % 60);
+            document.getElementById('timer').innerText =
+                `Juntos há ${dias} dias, ${horas}h ${minutos}m ${segundos}s`;
+        }
+        setInterval(atualizarContador, 1000);
+        atualizarContador();
+
+        // ============================================================
+        // CARREGAR MEMÓRIAS
+        // ============================================================
+        function loadMemorias() {
+            db.collection('memorias')
+              .orderBy('criadoEm', 'desc')
+              .onSnapshot(snapshot => {
+                  const container = document.getElementById('cards-container');
+                  if (snapshot.empty) {
+                      container.innerHTML = '<div class="loading">Ainda sem memórias... cria a primeira! ❤️</div>';
+                      return;
+                  }
+                  container.innerHTML = '';
+                  snapshot.forEach(doc => container.appendChild(buildCard(doc.id, doc.data())));
+              }, () => {
+                  document.getElementById('cards-container').innerHTML =
+                      '<div class="loading">Erro ao carregar. Verifica a configuração do Firebase.</div>';
+              });
+        }
+
+        function buildCard(id, d) {
+            const card = document.createElement('div');
+            card.className = 'card';
+
+            const imgHtml = d.imagemURL
+                ? `<img src="${escHtml(d.imagemURL)}" alt="${escHtml(d.titulo)}" loading="lazy">`
+                : `<div class="card-no-img"></div>`;
+
+            const audioHtml = d.audioURL
+                ? `<div class="audio-player">
+                       <audio controls preload="none">
+                           <source src="${escHtml(d.audioURL)}">
+                       </audio>
+                   </div>`
+                : '';
+
+            card.innerHTML = `
+                <button class="btn-delete" onclick="deletePost('${id}')" title="Apagar">✕</button>
+                ${imgHtml}
+                <div class="card-content">
+                    <div class="card-date">${escHtml(d.data || '')}</div>
+                    <div class="card-title">${escHtml(d.titulo || '')}</div>
+                    <div class="card-desc">${escHtml(d.descricao || '')}</div>
+                    ${audioHtml}
+                </div>`;
+            return card;
+        }
+
+        function escHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        // ============================================================
+        // CRIAR MEMÓRIA
+        // ============================================================
+        async function createPost() {
+            const titulo  = document.getElementById('post-titulo').value.trim();
+            const dataVal = document.getElementById('post-data').value;
+            const desc    = document.getElementById('post-desc').value.trim();
+            const imgFile = document.getElementById('post-imagem').files[0];
+            const audFile = document.getElementById('post-audio').files[0];
+            const errEl   = document.getElementById('post-error');
+            const btn     = document.getElementById('post-submit-btn');
+
+            if (!titulo) { errEl.textContent = 'O título é obrigatório.'; return; }
+            errEl.textContent = '';
+            btn.disabled = true;
+            btn.textContent = 'A publicar...';
+
+            try {
+                let imagemURL = '';
+                let audioURL  = '';
+
+                if (imgFile) {
+                    document.getElementById('img-progress').style.display = 'block';
+                    imagemURL = await uploadFile(imgFile, 'img-progress-fill');
+                }
+                if (audFile) {
+                    document.getElementById('audio-progress').style.display = 'block';
+                    audioURL = await uploadFile(audFile, 'audio-progress-fill');
+                }
+
+                let dataFormatada = '';
+                if (dataVal) {
+                    const [ano, mes, dia] = dataVal.split('-');
+                    dataFormatada = `${dia}/${mes}/${ano}`;
+                }
+
+                await db.collection('memorias').add({
+                    titulo,
+                    descricao: desc,
+                    data: dataFormatada,
+                    imagemURL,
+                    audioURL,
+                    criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                closeModal('post-modal');
+                resetPostForm();
+            } catch (err) {
+                console.error(err);
+                errEl.textContent = 'Erro ao publicar. Tenta de novo.';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Publicar Memória ❤️';
+            }
+        }
+
+        function uploadFile(file, progressId) {
+            return new Promise((resolve, reject) => {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('upload_preset', CLOUDINARY_PRESET);
+
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/upload`);
+
+                xhr.upload.onprogress = e => {
+                    if (e.lengthComputable) {
+                        const pct = (e.loaded / e.total) * 100;
+                        document.getElementById(progressId).style.width = pct + '%';
+                    }
+                };
+                xhr.onload = () => {
+                    if (xhr.status === 200) {
+                        resolve(JSON.parse(xhr.responseText).secure_url);
+                    } else {
+                        reject(new Error('Falha no upload'));
+                    }
+                };
+                xhr.onerror = () => reject(new Error('Falha no upload'));
+                xhr.send(formData);
+            });
+        }
+
+        // ============================================================
+        // APAGAR MEMÓRIA
+        // ============================================================
+        async function deletePost(id) {
+            if (!confirm('Apagar esta memória para sempre?')) return;
+            try {
+                await db.collection('memorias').doc(id).delete();
+            } catch (err) {
+                console.error(err);
+                alert('Erro ao apagar.');
+            }
+        }
+
+        // ============================================================
+        // UI
+        // ============================================================
+        function openModal(id)  { document.getElementById(id).classList.add('active'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+        function resetPostForm() {
+            ['post-titulo','post-data','post-desc','post-imagem','post-audio'].forEach(id => {
+                document.getElementById(id).value = '';
+            });
+            document.getElementById('img-file-name').textContent   = '';
+            document.getElementById('audio-file-name').textContent = '';
+            document.getElementById('post-error').textContent      = '';
+            const prev = document.getElementById('img-preview');
+            prev.src = ''; prev.style.display = 'none';
+            document.getElementById('img-progress').style.display   = 'none';
+            document.getElementById('audio-progress').style.display = 'none';
+            document.getElementById('img-progress-fill').style.width   = '0%';
+            document.getElementById('audio-progress-fill').style.width = '0%';
+        }
+
+        function previewImage(input) {
+            const file = input.files[0];
+            if (!file) return;
+            document.getElementById('img-file-name').textContent = file.name;
+            const reader = new FileReader();
+            reader.onload = e => {
+                const prev = document.getElementById('img-preview');
+                prev.src = e.target.result;
+                prev.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function showFileName(input, targetId) {
+            const file = input.files[0];
+            if (file) document.getElementById(targetId).textContent = file.name;
+        }
+
+        document.querySelectorAll('.modal-overlay').forEach(el => {
+            el.addEventListener('click', e => { if (e.target === el) el.classList.remove('active'); });
+        });
+
+        loadMemorias();
+    </script>
+</body>
+</html>
